@@ -154,13 +154,13 @@ def pconn_check(pconn, nagioslogger, args):
     else:
         include_hg = ''
 
-    pcursor.execute('SELECT hostgroup_id hg, srv_host srv, port, cast((ConnUsed*1.0/max_connections)*100 as int) pct_used ' \
-                    'FROM main.%s r ' \
-                    'JOIN stats.stats_mysql_connection_pool s ' \
-                    'ON r.hostgroup_id = s.hostgroup ' \
-                    'AND srv_host = hostname ' \
-                    'AND srv_port = port %s %s ' \
-                    'ORDER BY pct_used desc;' % (srv_table, ignore_hg, include_hg))
+    pcursor.execute('''SELECT hostgroup_id hg, srv_host srv, port, cast((ConnUsed*1.0/max_connections)*100 as int) pct_used
+                    FROM main.%s r
+                    JOIN stats.stats_mysql_connection_pool s
+                    ON r.hostgroup_id = s.hostgroup
+                    AND srv_host = hostname
+                    AND srv_port = port %s %s
+                    ORDER BY pct_used desc''' % (srv_table, ignore_hg, include_hg))
 
     output_values = pcursor.fetchall()
 
@@ -208,13 +208,13 @@ def phg_check(pconn, nagioslogger, args):
 
     max_thresh = max(args.warn_thresh, args.crit_thresh)
     pcursor = pconn.cursor(MySQLdb.cursors.DictCursor)
-    pcursor.execute('SELECT sl.hostgroup hg,count(sr.hostgroup) cnt ' \
-                    'FROM stats_mysql_connection_pool sl ' \
-                    'LEFT JOIN stats_mysql_connection_pool sr ' \
-                    'ON sl.hostgroup = sr.hostgroup ' \
-                    'AND sl.srv_host = sr.srv_host AND sl.srv_port = sr.srv_port AND sr.status = "ONLINE" ' \
-                    'GROUP BY sl.hostgroup ' \
-                    'HAVING cnt <= %s %s %s;' % (max_thresh, include_hg, ignore_hg))
+    pcursor.execute('''SELECT sl.hostgroup hg,count(sr.hostgroup) cnt
+                    FROM stats_mysql_connection_pool sl
+                    LEFT JOIN stats_mysql_connection_pool sr
+                    ON sl.hostgroup = sr.hostgroup
+                    AND sl.srv_host = sr.srv_host AND sl.srv_port = sr.srv_port AND sr.status = "ONLINE"
+                    GROUP BY sl.hostgroup
+                    HAVING cnt <= %s %s %s;''' % (max_thresh, include_hg, ignore_hg))
 
     output_values = pcursor.fetchall()
     pconn.close()
@@ -254,13 +254,13 @@ def prules_check(pconn, nagioslogger, args):
     else:
         srv_table = 'mysql_query_rules'
     pcursor = pconn.cursor()
-    pcursor.execute('SELECT * ' \
-                    'FROM main.%s r ' \
-                    'WHERE active = 1 ' % srv_table)
+    pcursor.execute('''SELECT *
+                    FROM main.%s r
+                    WHERE active = 1''' % srv_table)
     routput_values = pcursor.fetchall()
-    pcursor.execute('SELECT * '\
-                    'FROM disk.mysql_query_rules d ' \
-                    'WHERE active = 1 ')
+    pcursor.execute('''SELECT *
+                    FROM disk.mysql_query_rules d
+                    WHERE active = 1''')
     doutput_values = pcursor.fetchall()
     pconn.close()
 
