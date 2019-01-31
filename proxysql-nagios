@@ -45,14 +45,14 @@ def get_args():
                         help='ProxySQL defaults file (include the path to the file location and specify [proxysql-nagios] group)', dest='defaults_file', type=str, default=None)
     parser.add_argument('-t', '--type', required=True,
                         help='ProxySQL check type (one of conns,hg,rules,status,var)', dest='check_type',
-                        choices=['conns','hg','rules','status','var'], type=str, default='status')
+                        choices=['conns', 'hg', 'rules', 'status', 'var'], type=str, default='status')
     parser.add_argument('-n', '--name', required=False,
                         help='ProxySQL variable name to check', dest='var_name', type=str, default=None)
     parser.add_argument('-l', '--lower', required=False,
                         help='Alert if ProxySQL value are LOWER than defined WARN / CRIT thresholds (only applies to "var" check type', dest='lower', action='store_true')
     parser.add_argument('-r', '--runtime', required=False,
-                        help='Force ProxySQL Nagios check to query the runtime_mysql_XXX tables rather than the mysql_XXX tables, although this is more correct ' \
-                             'it can lead to excessive logging in ProxySQL and needs to be explicitely enabled (applies to "conns" and "rules" check types)',
+                        help='''Force ProxySQL Nagios check to query the runtime_mysql_XXX tables rather than the mysql_XXX tables, although this is more correct
+                             it can lead to excessive logging in ProxySQL and needs to be explicitely enabled (applies to "conns" and "rules" check types)''',
                              dest='runtime', action='store_true')
     parser.add_argument('-w', '--warning', required=False,
                         help='Warning threshold', dest='warn_thresh', type=int, default=None)
@@ -100,7 +100,8 @@ def proxysql_conn(host, port, user, passwd, defaults_file=None, timeout=60):
                                    connect_timeout=timeout)
         conn.autocommit(True)
     except Exception as e:
-        raise
+        nagioslogger.critical('ProxySQL connection failed: %s' % e)
+        sys.exit(UNKNOWN)
     return conn
 
 
